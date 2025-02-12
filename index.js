@@ -1,17 +1,15 @@
-//index.js
-
 const express = require('express');
 const sequelize = require('./database/connection');
 const userRoutes = require('./routes/userRoutes');
+const authorRoutes = require('./routes/authorRoutes');
+const articleRoutes = require('./routes/articleRoutes');
+
 const app = express();
 
 app.use(express.json());
 
 app.use(userRoutes);
-
-const articleRoutes = require('./routes/articleRoutes');
-
-// Include article routes
+app.use(authorRoutes);
 app.use(articleRoutes);
 
 

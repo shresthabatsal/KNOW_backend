@@ -1,18 +1,16 @@
 const express = require('express');
-const { createArticle, getAllArticles, getArticleById, getArticlesByCategory, getArticlesByTag, 
-    getArticlesByUserId, updateArticle, deleteArticle } = require('../controllers/articleController');
-const authenticateUser = require('../middleware/authMiddleware'); // Import the middleware
-
 const router = express.Router();
+const authenticateUser = require('../middleware/authMiddleware');
+const articleController = require('../controllers/articleController');
+const { getAllArticles, getArticleById, getArticlesByCategory } = require('../controllers/articleController');
 
-// Only authenticated users can create, update, and delete articles
-router.post('/articles', authenticateUser, createArticle);
+// Article Routes
+router.post('/articles', authenticateUser, articleController.createArticle);
+router.put('/articles/:id', authenticateUser, articleController.updateArticle);
+router.delete('/articles/:id', authenticateUser, articleController.deleteArticle);
+router.get('/articles/author/:authorId', authenticateUser, articleController.getArticlesByAuthorId);
 router.get('/articles', authenticateUser, getAllArticles);
-router.get('/articles/:id', authenticateUser, getArticleById);
-router.get('/articles/category/:category', authenticateUser, getArticlesByCategory);
-router.get('/articles/tag/:tags', authenticateUser, getArticlesByTag);
-router.get('/articles/user/:userId', authenticateUser, getArticlesByUserId);
-router.put('/articles/:id', authenticateUser, updateArticle);
-router.delete('/articles/:id', authenticateUser, deleteArticle);
+router.get('/articles/:id', getArticleById);
+router.get('/articles/category/:category', getArticlesByCategory);
 
 module.exports = router;

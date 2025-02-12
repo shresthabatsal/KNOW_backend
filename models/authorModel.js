@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/connection');
 
-const User = sequelize.define('User', {
+const Author = sequelize.define('Author', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -23,9 +23,9 @@ const User = sequelize.define('User', {
   role: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: 'user',
+    defaultValue: 'author',
   },
 },{
 });
 
-module.exports = User;
+module.exports = Author;

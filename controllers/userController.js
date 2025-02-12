@@ -1,5 +1,3 @@
-// controllers/userController.js
-
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
@@ -12,7 +10,8 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({ name, email, password: hashedPassword, role });
 
-    const token = jwt.sign({ userId: newUser.id }, 'your_jwt_secret', { expiresIn: '1h' });
+    // Include role in the token
+    const token = jwt.sign({ userId: newUser.id, role: newUser.role }, 'your_jwt_secret', { expiresIn: '1h' });
 
     res.status(201).json({ user: newUser, token });
   } catch (error) {
@@ -37,9 +36,10 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ error: 'Invalid password' });
     }
 
-    console.log('Logging in user ID:', user.id); // Debugging
+    console.log('Logging in user ID:', user.id, 'Role:', user.role); // Debugging
 
-    const token = jwt.sign({ userId: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
+    // Include role in the token
+    const token = jwt.sign({ userId: user.id, role: user.role }, 'your_jwt_secret', { expiresIn: '1h' });
 
     res.status(200).json({ token });
   } catch (error) {
@@ -47,7 +47,6 @@ const loginUser = async (req, res) => {
     res.status(500).json({ error: 'Login failed' });
   }
 };
-
 
 // Fetch user profile
 const getUserProfile = async (req, res) => {

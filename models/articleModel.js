@@ -1,8 +1,13 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/connection');
-const User = require('./userModel');
+const Author = require('./authorModel');
 
 const Article = sequelize.define('Article', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   title: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -20,16 +25,17 @@ const Article = sequelize.define('Article', {
     allowNull: false,
   },
   tags: {
-    type: DataTypes.ARRAY(DataTypes.STRING), // Array of strings for tags
+    type: DataTypes.ARRAY(DataTypes.STRING),
     allowNull: true,
   },
   status: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: 'draft', // default status is 'draft'
+    defaultValue: 'draft',
   },
 }, {});
 
-Article.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' }); // Foreign key to User
+// Establish the foreign key relationship between Author and Article
+Article.belongsTo(Author, { foreignKey: 'authorId', onDelete: 'CASCADE' });
 
 module.exports = Article;
