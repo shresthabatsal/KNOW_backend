@@ -1,9 +1,12 @@
 const Article = require('../models/articleModel');
 const Author = require('../models/authorModel');
+const fs = require('fs');
+const path = require('path');
 
 // Create an article
 const createArticle = async (req, res) => {
   const { title, summary, content, category, tags } = req.body;
+  const coverImage = req.file ? req.file.filename : null;
 
   if (!req.user || !req.user.id) {
     return res.status(400).json({ error: 'User is not authenticated or userId is missing' });
@@ -19,6 +22,7 @@ const createArticle = async (req, res) => {
 
     const newArticle = await Article.create({
       title,
+      cover_image: coverImage,
       summary,
       content,
       category,
@@ -29,6 +33,7 @@ const createArticle = async (req, res) => {
 
     res.status(201).json(newArticle);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create article' });
   }
 };
@@ -37,6 +42,7 @@ const createArticle = async (req, res) => {
 const updateArticle = async (req, res) => {
   const { id } = req.params;
   const { title, summary, content, category, tags } = req.body;
+  const coverImage = req.file ? req.file.filename : null;
 
   try {
     const article = await Article.findByPk(id);
@@ -50,9 +56,18 @@ const updateArticle = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: You are not authorized to update this article' });
     }
 
-    await article.update({ title, summary, content, category, tags });
+    await article.update({ 
+      title, 
+      summary, 
+      content, 
+      category, 
+      tags, 
+      cover_image: coverImage || article.cover_image  // If no new image, keep the old one
+    });
+    
     res.status(200).json(article);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update article' });
   }
 };
@@ -73,9 +88,25 @@ const deleteArticle = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: You are not authorized to delete this article' });
     }
 
+    // If there is a cover image, delete it from the file system
+    if (article.cover_image) {
+      const imagePath = path.join(__dirname, '..', 'uploads', article.cover_image);
+
+      // Check if file exists before attempting to delete
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error('Error deleting cover image:', err);
+        } else {
+          console.log('Cover image deleted:', article.cover_image);
+        }
+      });
+    }
+
+    // Delete the article
     await article.destroy();
     res.status(200).json({ message: 'Article deleted successfully' });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to delete article' });
   }
 };
