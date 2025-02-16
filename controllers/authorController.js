@@ -57,6 +57,12 @@ const loginAuthor = async (req, res) => {
 const getAuthorProfile = async (req, res) => {
   const { id } = req.params;
 
+  console.log('Fetching author profile for ID:', id); // Debugging
+
+  if (!id) {
+    return res.status(400).json({ error: 'Author ID is required' });
+  }
+
   try {
     const author = await Author.findByPk(id);
 
@@ -66,6 +72,7 @@ const getAuthorProfile = async (req, res) => {
 
     res.status(200).json(author);
   } catch (error) {
+    console.error('Error fetching author profile:', error); // Debugging
     res.status(500).json({ error: 'Failed to fetch author profile' });
   }
 };
@@ -92,6 +99,36 @@ const updateAuthorProfile = async (req, res) => {
   }
 };
 
+const updateAuthorPassword = async (req, res) => {
+  const { id } = req.params;
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    const author = await Author.findByPk(id);
+
+    if (!author) {
+      return res.status(404).json({ error: 'Author not found' });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, author.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await author.update({ password: hashedPassword });
+
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ error: 'Failed to update password' });
+  }
+};
+
 // Delete author
 const deleteAuthor = async (req, res) => {
   const { id } = req.params;
@@ -111,4 +148,4 @@ const deleteAuthor = async (req, res) => {
   }
 };
 
-module.exports = { registerAuthor, loginAuthor, getAuthorProfile, updateAuthorProfile, deleteAuthor };
+module.exports = { registerAuthor, loginAuthor, getAuthorProfile, updateAuthorProfile, updateAuthorPassword, deleteAuthor };

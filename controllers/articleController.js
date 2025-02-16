@@ -18,7 +18,10 @@ const createArticle = async (req, res) => {
   }
 
   try {
-    const authorId = req.user.id; // Assuming `req.user.id` comes from the decoded JWT
+    const authorId = req.user.id;
+
+    // Ensure tags is an array before creating the article
+    const tagsArray = Array.isArray(tags) ? tags : tags ? [tags] : [];
 
     const newArticle = await Article.create({
       title,
@@ -26,8 +29,8 @@ const createArticle = async (req, res) => {
       summary,
       content,
       category,
-      tags,
-      authorId: authorId, // Set the authorId to the logged-in author's ID
+      tags: tagsArray, // Ensure tags is an array
+      authorId: authorId,
       status: 'draft',
     });
 
@@ -56,21 +59,25 @@ const updateArticle = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: You are not authorized to update this article' });
     }
 
-    await article.update({ 
-      title, 
-      summary, 
-      content, 
-      category, 
-      tags, 
-      cover_image: coverImage || article.cover_image  // If no new image, keep the old one
+    // Ensure tags is an array before updating the article
+    const tagsArray = Array.isArray(tags) ? tags : tags ? [tags] : [];
+
+    await article.update({
+      title,
+      summary,
+      content,
+      category,
+      tags: tagsArray, // Ensure tags is an array
+      cover_image: coverImage || article.cover_image,
     });
-    
+
     res.status(200).json(article);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to update article' });
   }
 };
+
 
 // Delete an article
 const deleteArticle = async (req, res) => {
