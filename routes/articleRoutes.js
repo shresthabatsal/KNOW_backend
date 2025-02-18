@@ -7,7 +7,7 @@ const { getAllArticles, getArticleById, getArticlesByCategory } = require('../co
 
 // Article Routes
 router.post('/articles', authenticateUser, upload.single('cover_image'), articleController.createArticle);
-router.put('/articles/:id', authenticateUser, articleController.updateArticle);
+router.put('/articles/:id', authenticateUser, upload.single('cover_image'), articleController.updateArticle);
 router.delete('/articles/:id', authenticateUser, articleController.deleteArticle);
 router.get('/articles/author/:authorId', authenticateUser, articleController.getArticlesByAuthorId);
 router.get('/articles', authenticateUser, getAllArticles);

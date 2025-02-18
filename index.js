@@ -4,6 +4,7 @@ const sequelize = require('./database/connection');
 const userRoutes = require('./routes/userRoutes');
 const authorRoutes = require('./routes/authorRoutes');
 const articleRoutes = require('./routes/articleRoutes');
+const path = require('path');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(authorRoutes);
 app.use(articleRoutes);
 
 app.options('*', cors()); // Allow preflight requests for all routes
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Sync database and start server
 sequelize.sync()

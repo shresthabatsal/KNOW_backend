@@ -5,7 +5,7 @@ const path = require('path');
 
 // Create an article
 const createArticle = async (req, res) => {
-  const { title, summary, content, category, tags } = req.body;
+  const { title, summary, content, category, tags, status } = req.body;
   const coverImage = req.file ? req.file.filename : null;
 
   if (!req.user || !req.user.id) {
@@ -30,8 +30,8 @@ const createArticle = async (req, res) => {
       content,
       category,
       tags: tagsArray, // Ensure tags is an array
+      status,
       authorId: authorId,
-      status: 'draft',
     });
 
     res.status(201).json(newArticle);
