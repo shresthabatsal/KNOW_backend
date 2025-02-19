@@ -44,7 +44,7 @@ const createArticle = async (req, res) => {
 // Update an article
 const updateArticle = async (req, res) => {
   const { id } = req.params;
-  const { title, summary, content, category, tags } = req.body;
+  const { title, summary, content, category, tags,  status } = req.body;
   const coverImage = req.file ? req.file.filename : null;
 
   try {
@@ -69,6 +69,7 @@ const updateArticle = async (req, res) => {
       category,
       tags: tagsArray, // Ensure tags is an array
       cover_image: coverImage || article.cover_image,
+      status
     });
 
     res.status(200).json(article);
