@@ -1,5 +1,6 @@
 const Article = require('../models/articleModel');
 const Author = require('../models/authorModel');
+const { Op } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
 
@@ -20,8 +21,13 @@ const createArticle = async (req, res) => {
   try {
     const authorId = req.user.id;
 
-    // Ensure tags is an array before creating the article
-    const tagsArray = Array.isArray(tags) ? tags : tags ? [tags] : [];
+    // Parse tags into an array
+    let tagsArray = [];
+    if (typeof tags === 'string') {
+      tagsArray = tags.split(',').map(tag => tag.trim());
+    } else if (Array.isArray(tags)) {
+      tagsArray = tags.map(tag => tag.trim());
+    }
 
     const newArticle = await Article.create({
       title,
@@ -29,7 +35,7 @@ const createArticle = async (req, res) => {
       summary,
       content,
       category,
-      tags: tagsArray, // Ensure tags is an array
+      tags: tagsArray, // Save tags as an array
       status,
       authorId: authorId,
     });
@@ -44,7 +50,7 @@ const createArticle = async (req, res) => {
 // Update an article
 const updateArticle = async (req, res) => {
   const { id } = req.params;
-  const { title, summary, content, category, tags,  status } = req.body;
+  const { title, summary, content, category, tags, status } = req.body;
   const coverImage = req.file ? req.file.filename : null;
 
   try {
@@ -59,17 +65,22 @@ const updateArticle = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: You are not authorized to update this article' });
     }
 
-    // Ensure tags is an array before updating the article
-    const tagsArray = Array.isArray(tags) ? tags : tags ? [tags] : [];
+    // Parse tags into an array
+    let tagsArray = [];
+    if (typeof tags === 'string') {
+      tagsArray = tags.split(',').map(tag => tag.trim());
+    } else if (Array.isArray(tags)) {
+      tagsArray = tags.map(tag => tag.trim());
+    }
 
     await article.update({
       title,
       summary,
       content,
       category,
-      tags: tagsArray, // Ensure tags is an array
+      tags: tagsArray, // Save tags as an array
       cover_image: coverImage || article.cover_image,
-      status
+      status,
     });
 
     res.status(200).json(article);
@@ -198,6 +209,43 @@ const getArticlesByCategory = async (req, res) => {
   }
 };
 
+// Search articles by query
+const searchArticles = async (req, res) => {
+  const { query } = req.query; // Get the search query from the URL query parameters
+
+  if (!query) {
+    return res.status(400).json({ error: 'Search query is required' });
+  }
+
+  try {
+    const articles = await Article.findAll({
+      where: {
+        [Op.or]: [
+          { title: { [Op.iLike]: `%${query}%` } }, // Case-insensitive search in title
+          { summary: { [Op.iLike]: `%${query}%` } }, // Case-insensitive search in summary
+          { content: { [Op.iLike]: `%${query}%` } }, // Case-insensitive search in content
+          { category: { [Op.iLike]: `%${query}%` } }, // Case-insensitive search in category
+          { tags: { [Op.contains]: [query] } }, // Search in tags array
+        ],
+      },
+      include: {
+        model: Author,
+        attributes: ['id', 'name', 'email'],
+      },
+      order: [['createdAt', 'DESC']], // Sort by latest first
+    });
+
+    if (articles.length === 0) {
+      return res.status(404).json({ error: 'No articles found matching your search' });
+    }
+
+    res.status(200).json(articles);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to search articles' });
+  }
+};
+
 module.exports = {
   createArticle,
   updateArticle,
@@ -206,4 +254,5 @@ module.exports = {
   getAllArticles,
   getArticleById,
   getArticlesByCategory,
+  searchArticles,
 };

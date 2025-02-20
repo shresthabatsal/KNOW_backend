@@ -13,5 +13,6 @@ router.get('/articles/author/:authorId', authenticateUser, articleController.get
 router.get('/articles', authenticateUser, getAllArticles);
 router.get('/articles/:id', getArticleById);
 router.get('/articles/category/:category', getArticlesByCategory);
+router.get('/search', articleController.searchArticles);
 
 module.exports = router;
