@@ -1,6 +1,9 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Author = require('../models/authorModel');
+const Article = require('../models/articleModel');
+const ArticleView = require('../models/articleViewModel');
+const SavedArticle = require('../models/savedArticleModel');
 
 // Register author
 const registerAuthor = async (req, res) => {
@@ -148,4 +151,42 @@ const deleteAuthor = async (req, res) => {
   }
 };
 
-module.exports = { registerAuthor, loginAuthor, getAuthorProfile, updateAuthorProfile, updateAuthorPassword, deleteAuthor };
+// Get Author Analytics
+const getAuthorAnalytics = async (req, res) => {
+  const { authorId } = req.params;
+
+  try {
+    // Fetch the author
+    const author = await Author.findByPk(authorId);
+    if (!author) {
+      return res.status(404).json({ error: 'Author not found' });
+    }
+
+    // Fetch all articles by the author
+    const articles = await Article.findAll({ where: { authorId } });
+
+    // Get article IDs for the author
+    const articleIds = articles.map((article) => article.id);
+
+    // Fetch total views for all articles
+    const totalViews = await ArticleView.count({ where: { articleId: articleIds } });
+
+    // Fetch total saves for all articles
+    const totalSaves = await SavedArticle.count({ where: { articleId: articleIds } });
+
+    // Prepare analytics data
+    const analytics = {
+      totalArticles: articles.length,
+      totalViews,
+      totalSaves,
+    };
+
+    res.status(200).json(analytics);
+  } catch (error) {
+    console.error('Error fetching author analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch author analytics' });
+  }
+};
+
+module.exports = { registerAuthor, loginAuthor, getAuthorProfile, updateAuthorProfile, updateAuthorPassword, 
+  deleteAuthor, getAuthorAnalytics };
