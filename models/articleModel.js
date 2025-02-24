@@ -37,9 +37,8 @@ const Article = sequelize.define('Article', {
     allowNull: false,
     defaultValue: 'draft',
   },
-}, {});
+});
 
-// Establish the foreign key relationship between Author and Article
 Article.belongsTo(Author, { foreignKey: 'authorId', onDelete: 'CASCADE' });
 
 module.exports = Article;
