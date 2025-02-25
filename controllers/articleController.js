@@ -10,6 +10,11 @@ const createArticle = async (req, res) => {
   const { title, summary, content, category, tags, status } = req.body;
   const coverImage = req.file ? req.file.filename : null;
 
+  // Validate required fields
+  if (!title || !summary || !content || !coverImage || !category || !status) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
   if (!req.user || !req.user.id) {
     return res.status(400).json({ error: 'User is not authenticated or userId is missing' });
   }
@@ -53,6 +58,11 @@ const updateArticle = async (req, res) => {
   const { id } = req.params;
   const { title, summary, content, category, tags, status } = req.body;
   const coverImage = req.file ? req.file.filename : null;
+
+  // Validate required fields
+  if (!title || !summary || !content || !coverImage || !category || !status) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
 
   try {
     const article = await Article.findByPk(id);
@@ -108,19 +118,10 @@ const deleteArticle = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: You are not authorized to delete this article' });
     }
 
-    // If there is a cover image, delete it from the file system
-    if (article.cover_image) {
-      const imagePath = path.join(__dirname, '..', 'uploads', article.cover_image);
-
-      // Check if file exists before attempting to delete
-      fs.unlink(imagePath, (err) => {
-        if (err) {
-          console.error('Error deleting cover image:', err);
-        } else {
-          console.log('Cover image deleted:', article.cover_image);
-        }
-      });
-    }
+    // Delete all related records in the ArticleViews table
+    await ArticleView.destroy({
+      where: { articleId: id },
+    });
 
     // Delete the article
     await article.destroy();
